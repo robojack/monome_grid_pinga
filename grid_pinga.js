@@ -15,26 +15,36 @@ async function run() {
   let grid = await monomeGrid();
   let led = helpers.create2DArray(sizeY, sizeX);
   let step = 0;
-  let frequency = 100; // in milliseconds
+  let frequency = 500; // in milliseconds
+
+  // Setup a randomized array that matches the number of keys
+  let stepper = [];
+  while (stepper.length < sizeY * sizeX) {
+    stepper.push(stepper.length);
+  }
+  stepper = helpers.shuffleArray(stepper);
 
   let refresh = function() {
     if (step >= hosts.length) step = 0;
-    const { y, x } = helpers.numberToCoords(step, sizeY, sizeX);
+
+    // Use our randomized stepper to choose the next step
+    const randoStep = stepper[step];
+    const { y, x } = helpers.numberToCoords(randoStep, sizeY, sizeX);
 
     // turn on the current step
     led[y][x] = brightness;
 
-    ping.promise.probe(hosts[step]).then(res => {
+    ping.promise.probe(hosts[randoStep]).then(res => {
       if (res.alive) {
         // Most times the repsonse is too fast for us to see the light
-        // turn on and off so we set a short delay before turning it off.
+        // turn on and off so we set a timeout before turning it off.
         setTimeout(() => {
           led[y][x] = 0;
-        }, 100);
+          grid.refresh(led);
+        }, frequency);
       }
     });
 
-    grid.refresh(led);
     step++;
   };
 

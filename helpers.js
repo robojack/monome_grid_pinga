@@ -51,4 +51,26 @@ function numberToCoords(num, sizeY, sizeX) {
   return { y: quotientY, x: remainderX };
 }
 
-module.exports = { create2DArray, coordsToNumber, numberToCoords };
+/**
+ * Randomize array element order in-place.
+ * Using Durstenfeld shuffle algorithm.
+ */
+function shuffleArray(array) {
+  const randoArray = array;
+
+  for (var i = randoArray.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = randoArray[i];
+    randoArray[i] = randoArray[j];
+    randoArray[j] = temp;
+  }
+
+  return randoArray;
+}
+
+module.exports = {
+  create2DArray,
+  coordsToNumber,
+  numberToCoords,
+  shuffleArray
+};
