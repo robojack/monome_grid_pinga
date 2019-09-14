@@ -1,49 +1,8 @@
 const monomeGrid = require("monome-grid");
 const ping = require("ping");
 const open = require("open");
+const helpers = require("./helpers");
 const hosts = require("./hosts");
-
-function create2DArray(sizeY, sizeX) {
-  let arr = [];
-  for (let y = 0; y < sizeY; y++) {
-    arr[y] = [];
-    for (let x = 0; x < sizeX; x++) {
-      arr[y][x] = 0;
-    }
-  }
-  return arr;
-}
-
-function coordsToNumber(array, posY, posX) {
-  let counter = 0;
-  // Count the number of items in each row preceeding posY
-  for (let row = 0; row < posY; row++) {
-    for (let x = 0; x < array[row].length; x++) {
-      counter++;
-    }
-  }
-  // Return the count of items in preceeding rows plus the X position
-  return counter + posX;
-}
-
-/**
- * Returns a set of coordinates from a number based on the width and height of the grid.
- * @param {Integer} num - A representation of a position on the grid, starts at 0. This means an 8x8 grid with 64 buttons has a starting value of 0 and a maximum value of 63
- * @param {Integer} sizeY - The height of the grid (rows)
- * @param {Integer} sizeX - The width of the grid (columns)
- */
-function numToCoords(num, sizeY, sizeX) {
-  if (num < sizeX) return { y: 0, x: num };
-
-  const offsetNum = num;
-  const quotientY = Math.floor(offsetNum / sizeX);
-  const remainderX = offsetNum % sizeX;
-
-  if (quotientY >= sizeY)
-    return new Error("The number provided falls outside the grid");
-
-  return { y: quotientY, x: remainderX };
-}
 
 async function run() {
   // Change these if you have a different size grid
@@ -54,13 +13,13 @@ async function run() {
   const brightness = 1;
 
   let grid = await monomeGrid();
-  let led = create2DArray(sizeY, sizeX);
+  let led = helpers.create2DArray(sizeY, sizeX);
   let step = 0;
   let frequency = 100; // in milliseconds
 
   let refresh = function() {
     if (step >= hosts.length) step = 0;
-    const { y, x } = numToCoords(step, sizeY, sizeX);
+    const { y, x } = helpers.numberToCoords(step, sizeY, sizeX);
 
     // turn on the current step
     led[y][x] = brightness;
@@ -82,9 +41,9 @@ async function run() {
   // Refresh the grid
   setInterval(refresh, frequency);
 
-  // Set up key handler
+  // Link each key to its host and open in the default browser
   grid.key(async (x, y, s) => {
-    const position = coordsToNumber(led, y, x);
+    const position = helpers.coordsToNumber(led, y, x);
     const host = hosts[position];
     if (host) await open(`https://${host}`);
   });
