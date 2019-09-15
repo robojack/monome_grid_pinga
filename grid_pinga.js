@@ -15,7 +15,9 @@ async function run() {
   let grid = await monomeGrid();
   let led = helpers.create2DArray(sizeY, sizeX);
   let step = 0;
-  let frequency = 500; // in milliseconds
+  let frequency = 1000 / 60; // in milliseconds
+  let pauseDuration = 30000; // 30 seconds
+  let timer = null;
 
   // Setup a randomized array that matches the number of keys
   let stepper = [];
@@ -25,7 +27,17 @@ async function run() {
   stepper = helpers.shuffleArray(stepper);
 
   let refresh = function() {
-    if (step >= hosts.length) step = 0;
+    // Reset the step and take a pause before the next round of pings
+    if (step >= hosts.length) {
+      if (!timer) {
+        timer = setTimeout(() => {
+          step = 0;
+          clearTimeout(timer);
+          timer = null;
+        }, pauseDuration);
+      }
+      return;
+    }
 
     // Use our randomized stepper to choose the next step
     const randoStep = stepper[step];
@@ -34,16 +46,20 @@ async function run() {
     // turn on the current step
     led[y][x] = brightness;
 
-    ping.promise.probe(hosts[randoStep]).then(res => {
-      if (res.alive) {
-        // Most times the repsonse is too fast for us to see the light
-        // turn on and off so we set a timeout before turning it off.
-        setTimeout(() => {
-          led[y][x] = 0;
-          grid.refresh(led);
-        }, frequency);
-      }
-    });
+    ping.promise
+      .probe(hosts[randoStep], {
+        timeout: 10
+      })
+      .then(res => {
+        if (res.alive) {
+          // Most times the repsonse is too fast for us to see the light
+          // turn on and off so we set a timeout before turning it off.
+          setTimeout(() => {
+            led[y][x] = 0;
+            grid.refresh(led);
+          }, frequency);
+        }
+      });
 
     step++;
   };
