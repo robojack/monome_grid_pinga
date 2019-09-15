@@ -1,5 +1,7 @@
 # monome grid pinga
 
+![Monome Grid 8x8 running pinga](https://github.com/robojack/monome_grid_pinga/raw/master/pinga.gif)
+
 This Node-based [monome](https://monome.org) app pings a set of user defined hosts and will let you know when a host is unreachable. When a host is unreachable, the corresponding key will stay lit. You can press the key, lit or not, and it will open the corresponding host in your default browser.
 
 ## how to use
@@ -34,12 +36,16 @@ let frequency = 50; // in milliseconds
 Now you are ready to run pinga:
 
 ```bash
-$ node grid_pinga.js
+# for Yarn
+$ yarn start
+
+# for NPM
+$ npm start
 ```
 
 ## alternative sequencing
 
-In the current version, pinga will ping your defined hosts randomly. If you want it to ping your hosts sequentially (i.e. in order), take a look at [`v1.0`](releases/tag/v1.0)
+In the current version, pinga will ping your defined hosts randomly. If you want it to ping your hosts sequentially (i.e. in order), take a look at [`v1.0.0`](../../releases/tag/v1.0.0)
 
 ## dependencies
 

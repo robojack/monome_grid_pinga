@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "grid_pinga.js",
   "license": "MIT",
+  "scripts": {
+    "start": "node grid_pinga.js"
+  },
   "dependencies": {
     "monome-grid": "^1.0.2",
     "open": "^6.4.0",

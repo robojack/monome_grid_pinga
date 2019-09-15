@@ -8,52 +8,49 @@ async function run() {
   // Change these if you have a different size grid
   const sizeY = 8;
   const sizeX = 8;
-  // Newer grids support a value between 0 and 14.
-  // Older grids are either on or off, e.g. 1 or 0.
+
+  // For varibright grids, use a value between 0 and 14.
+  // For non-varibright grids, 1 or 0 (on or off).
   const brightness = 1;
 
   let grid = await monomeGrid();
   let led = helpers.create2DArray(sizeY, sizeX);
-  let step = 0;
-  let frequency = 50; // in milliseconds
+  let currentStep = 0;
+  let frequency = 75; // in milliseconds
 
-  // Setup a randomized array that matches the number of keys
-  let stepper = [];
-  while (stepper.length < sizeY * sizeX) {
-    stepper.push(stepper.length);
+  // Setup a randomized array whose length matches the number of hosts
+  let randoSteps = [];
+  while (randoSteps.length < hosts.length) {
+    randoSteps.push(randoSteps.length);
   }
-  stepper = helpers.shuffleArray(stepper);
+  randoSteps = helpers.shuffleArray(randoSteps);
 
   let refresh = function() {
-    // Reset the step to 0 and reshuffle the stepper
-    if (step >= hosts.length) {
-      stepper = helpers.shuffleArray(stepper);
-      step = 0;
+    // Reset the currentStep to 0 and reshuffle the randoSteps
+    if (currentStep >= hosts.length) {
+      randoSteps = helpers.shuffleArray(randoSteps);
+      currentStep = 0;
     }
 
-    // Use our randomized stepper to choose the next step
-    const randoStep = stepper[step];
+    // Use our randomized randoSteps to choose the next currentStep
+    const randoStep = randoSteps[currentStep];
     const { y, x } = helpers.numberToCoords(randoStep, sizeY, sizeX);
 
-    // turn on the current step
+    // turn on the current currentStep
     led[y][x] = brightness;
 
-    ping.promise
-      .probe(hosts[randoStep], {
-        timeout: 10
-      })
-      .then(res => {
-        if (res.alive) {
-          // Most times the repsonse is too fast for us to see the light
-          // turn on and off so we set a timeout before turning it off.
-          setTimeout(() => {
-            led[y][x] = 0;
-            grid.refresh(led);
-          }, frequency);
-        }
-      });
+    ping.promise.probe(hosts[randoStep]).then(res => {
+      if (res.alive) {
+        // The repsonse time will usually be too fast for us to see the light
+        // turn on and off so we set a timeout before turning it off.
+        setTimeout(() => {
+          led[y][x] = 0;
+          grid.refresh(led);
+        }, frequency);
+      }
+    });
 
-    step++;
+    currentStep++;
   };
 
   // Refresh the grid
